@@ -6,43 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using DatingApp.API.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DatingApp.API.Controllers
 {
-    // [ApiController]
-    // [Route("[controller]")] // http://localhost:5000/[controller]
-    // public class WeatherForecastController : ControllerBase
-    // {
-    //     private static readonly string[] Summaries = new[]
-    //     {
-    //         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    //     };
-
-    //     private readonly ILogger<WeatherForecastController> _logger;
-
-    //     public WeatherForecastController(ILogger<WeatherForecastController> logger)
-    //     {
-    //         _logger = logger;
-    //     }
-
-    //     [HttpGet]
-    //     public IEnumerable<WeatherForecast> Get()
-    //     {
-    //         var rng = new Random();
-    //         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-    //         {
-    //             Date = DateTime.Now.AddDays(index),
-    //             TemperatureC = rng.Next(-20, 55),
-    //             Summary = Summaries[rng.Next(Summaries.Length)]
-    //         })
-    //         .ToArray();
-    //     }
-    // }
-
-    // Naming convention works like this
-    // THe  word before the Controller when specifing the class becomes the route 
-    // for eg, values + Controller make the class name hence values is the route
-    // /api/values
+    [Authorize] // This is added such that all the requests inside this Controller must be a valid Request
     [ApiController]
     [Route("api/[controller]")]
     public class ValuesController : ControllerBase 
@@ -69,6 +37,7 @@ namespace DatingApp.API.Controllers
             return Ok(values);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetValue (int id) {
             var value = await this._context.Values.FirstOrDefaultAsync(x => x.Id == id);

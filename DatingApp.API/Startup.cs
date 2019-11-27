@@ -15,6 +15,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Net;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using DatingApp.API.Helpers;
 
 namespace DatingApp.API
 {
@@ -59,6 +63,22 @@ namespace DatingApp.API
             {
                 // This acts as global exception Handler that throws error if any part of api throw error.
                 app.UseDeveloperExceptionPage();
+            }
+            else 
+            {
+                // handling exceptions means using try catch block to show messages for production
+                app.UseExceptionHandler(builder => {
+                    builder.Run(async context => {  // context is http request and response
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                        var error = context.Features.Get<IExceptionHandlerFeature>();
+                        if (error != null)
+                        {
+                            context.Response.AddApplicationError(error.Error.Message);
+                            await context.Response.WriteAsync(error.Error.Message);
+                        }
+                    });
+                });  // midlleware for global exception handling
             }
 
             // app.UseHttpsRedirection();

@@ -19,6 +19,8 @@ using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using DatingApp.API.Helpers;
+using Newtonsoft.Json;
+using AutoMapper;
 
 namespace DatingApp.API
 {
@@ -41,8 +43,17 @@ namespace DatingApp.API
 
             services.AddControllers();
             services.AddCors(); // added to enable cors as service and add to pipeline
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
+            services.AddScoped<IDatingRepository, DatingRepository>();
+
+            services.AddTransient<Seed>();
+
+            
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             // Middleware added for authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
@@ -57,7 +68,7 @@ namespace DatingApp.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Seed seeder)
         {
             if (env.IsDevelopment())
             {
@@ -84,6 +95,9 @@ namespace DatingApp.API
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            // seeder is added as service and then used in Configure
+            // seeder.SeedUsers();  // Uncomment and restart to seed the data
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();

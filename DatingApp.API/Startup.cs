@@ -50,10 +50,14 @@ namespace DatingApp.API
 
             services.AddTransient<Seed>();
 
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
+
             
             services.AddMvc(option => option.EnableEndpointRouting = false)
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
+
 
             // Middleware added for authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {

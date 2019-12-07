@@ -1,8 +1,9 @@
 using System;
+using Microsoft.AspNetCore.Http;
 
-namespace DatingApp.API.Models
+namespace DatingApp.API.Dtos
 {
-    public class Photo
+    public class PhotoForReturnDto
     {
         public int Id { get; set; }
 
@@ -14,11 +15,6 @@ namespace DatingApp.API.Models
 
         public bool IsMain { get; set; }
 
-        public string PublicID { get; set; }
-
-        // Below fields creates a 1 : n relation
-        public User User { get; set; }
-
-        public int UserId { get; set; }
+        public string PublicId { get; set; }
     }
 }

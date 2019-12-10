@@ -46,7 +46,7 @@ namespace DatingApp.API
             services.AddAutoMapper(typeof(Startup));
 
             services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
-            services.AddScoped<IDatingRepository, DatingRepository>();
+            services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
 
             services.AddTransient<Seed>();
 
@@ -69,6 +69,8 @@ namespace DatingApp.API
                     ValidateAudience = false
                 };
             });
+
+            services.AddScoped<LogUserActivity>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

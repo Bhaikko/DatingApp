@@ -8,6 +8,7 @@ import { JwtModule } from '@auth0/angular-jwt';
 import { NgxGalleryModule } from 'ngx-gallery';
 import { FileUploadModule } from 'ng2-file-upload';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
+import { TimeAgoPipe } from 'time-ago-pipe';
 
 
 import { AppComponent } from './app.component';
@@ -49,7 +50,8 @@ import { MemberMessagesComponent } from './members/member-messages/member-messag
     MemberDetailComponent,
     MemberEditComponent,
     PhotoEditorComponent,
-    MemberMessagesComponent
+    MemberMessagesComponent,
+    TimeAgoPipe
   ],
   imports: [
     BrowserModule,

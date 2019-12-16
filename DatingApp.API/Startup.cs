@@ -39,6 +39,44 @@ namespace DatingApp.API
         public void ConfigureServices(IServiceCollection services)
         {
             // AddDbContext is used to setup database connection.
+            services.AddDbContext<DataContext>(x => x.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddControllers();
+            services.AddCors(); // added to enable cors as service and add to pipeline
+            services.AddAutoMapper(typeof(Startup));
+
+            services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
+            services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
+
+            services.AddTransient<Seed>();
+
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
+
+            
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
+
+
+            // Middleware added for authentication
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+
+            services.AddScoped<LogUserActivity>();
+        }
+
+        // Mvc automatically runs services based on convention. eg. This function has Development as convention
+        public void ConfigureDevelopmentServices(IServiceCollection services)
+        {
+            // AddDbContext is used to setup database connection.
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddControllers();
@@ -107,10 +145,14 @@ namespace DatingApp.API
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseDefaultFiles();  // look for default files eg. index.html
+            app.UseStaticFiles(); // looks inside wwwroot folder to serve those files
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                
+                endpoints.MapFallbackToController("Index", "Fallback");
             });
         }
     }

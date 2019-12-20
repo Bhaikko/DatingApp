@@ -74,6 +74,7 @@ namespace DatingApp.API
         }
 
         // Mvc automatically runs services based on convention. eg. This function has Development as convention
+        // To start development, do not use the environment_variable in terminal and change settings in launchSettings.json
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
             // AddDbContext is used to setup database connection.

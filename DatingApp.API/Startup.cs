@@ -113,6 +113,12 @@ namespace DatingApp.API
                 };
             });
 
+            services.AddAuthorization(options => {
+                options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
+                options.AddPolicy("VipOnly", policy => policy.RequireRole("VIP"));
+            });
+
             services.AddControllers();
             services.AddCors(); // added to enable cors as service and add to pipeline
             services.AddAutoMapper(typeof(Startup));
@@ -173,7 +179,7 @@ namespace DatingApp.API
             app.UseRouting();
 
             // seeder is added as service and then used in Configure
-            // seeder.SeedUsers();  // Uncomment and restart to seed the data
+            seeder.SeedUsers();  // Uncomment and restart to seed the data
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace DatingApp.API.Controllers
 {
-    [Authorize] // This is added such that all the requests inside this Controller must be a valid Request
+    // [Authorize] // This is added such that all the requests inside this Controller must be a valid Request
     [ApiController]
     [Route("api/[controller]")]
     public class ValuesController : ControllerBase 
@@ -29,7 +29,7 @@ namespace DatingApp.API.Controllers
         //     return Ok(values);
         // }
         
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin, Moderator")]
         [HttpGet]
         public async Task<IActionResult> GetValues () {
             // To retrieve values from database and values table
@@ -38,7 +38,7 @@ namespace DatingApp.API.Controllers
             return Ok(values);
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "Member")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetValue (int id) {
             var value = await this._context.Values.FirstOrDefaultAsync(x => x.Id == id);

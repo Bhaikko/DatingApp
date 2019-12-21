@@ -21,6 +21,10 @@ using Microsoft.AspNetCore.Http;
 using DatingApp.API.Helpers;
 using Newtonsoft.Json;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using DatingApp.API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace DatingApp.API
 {
@@ -36,68 +40,68 @@ namespace DatingApp.API
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // services here will be injected to each other
+        /* 
         public void ConfigureServices(IServiceCollection services)
-        {
-            // AddDbContext is used to setup database connection.
-            services.AddDbContext<DataContext>(x => x.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
+        // {
+        //     // AddDbContext is used to setup database connection.
+        //     services.AddDbContext<DataContext>(x => x.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddControllers();
-            services.AddCors(); // added to enable cors as service and add to pipeline
-            services.AddAutoMapper(typeof(Startup));
+        //     services.AddControllers();
+        //     services.AddCors(); // added to enable cors as service and add to pipeline
+        //     services.AddAutoMapper(typeof(Startup));
 
-            services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
-            services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
+        //     services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
+        //     services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
 
-            services.AddTransient<Seed>();
+        //     services.AddTransient<Seed>();
 
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
+        //     services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
 
             
-            services.AddMvc(option => option.EnableEndpointRouting = false)
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+        //     services.AddMvc(option => option.EnableEndpointRouting = false)
+        //         .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+        //         .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
 
 
-            // Middleware added for authentication
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-            });
+        //     // Middleware added for authentication
+        //     services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
+        //         options.TokenValidationParameters = new TokenValidationParameters
+        //         {
+        //             ValidateIssuerSigningKey = true,
+        //             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
+        //             ValidateIssuer = false,
+        //             ValidateAudience = false
+        //         };
+        //     });
 
-            services.AddScoped<LogUserActivity>();
-        }
+        //     services.AddScoped<LogUserActivity>();
+        // }
+        */
+
 
         // Mvc automatically runs services based on convention. eg. This function has Development as convention
         // To start development, do not use the environment_variable in terminal and change settings in launchSettings.json
-        public void ConfigureDevelopmentServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             // AddDbContext is used to setup database connection.
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddControllers();
-            services.AddCors(); // added to enable cors as service and add to pipeline
-            services.AddAutoMapper(typeof(Startup));
+            // AUTHENTICATION CONFIGURATION
+            // Used for JWT token bearer system instead of cookie based auth
+            // configuraion for user
+            IdentityBuilder builder = services.AddIdentityCore<User>(opt => {
+                opt.Password.RequireDigit = false;
+                opt.Password.RequiredLength = 4;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = false;
+            });
 
-            services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
-            services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
-
-            services.AddTransient<Seed>();
-
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
-
-            
-            services.AddMvc(option => option.EnableEndpointRouting = false)
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
-
-
-
+            builder = new IdentityBuilder(builder.UserType, typeof(Role), builder.Services);
+            builder.AddEntityFrameworkStores<DataContext>();    // use our DataContext for tables
+            builder.AddRoleValidator<RoleValidator<Role>>();
+            builder.AddRoleManager<RoleManager<Role>>();
+            builder.AddSignInManager<SignInManager<User>>();
             // Middleware added for authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -108,6 +112,33 @@ namespace DatingApp.API
                     ValidateAudience = false
                 };
             });
+
+            services.AddControllers();
+            services.AddCors(); // added to enable cors as service and add to pipeline
+            services.AddAutoMapper(typeof(Startup));
+
+            // Since the project now uses IdentityClasses and UserManager for login and signup
+            // services.AddScoped<IAuthRepository, AuthRepository>();  // Adding Interface and Repository
+            
+            services.AddScoped<IDatingRepository, DatingRepository>();  // AddScoped creates new instance per request
+
+            services.AddTransient<Seed>();
+
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings")); // to bind Values in Cloudinarysettings.cs to Ones in appsettings.json
+
+            
+            services.AddMvc(option => {
+                option.EnableEndpointRouting = false;
+
+                // This defines Auth policies
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser() 
+                    .Build();
+
+                option.Filters.Add(new AuthorizeFilter(policy));
+            })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddScoped<LogUserActivity>();
         }

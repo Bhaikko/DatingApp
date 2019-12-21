@@ -1,44 +1,30 @@
 using System.Collections.Generic;
+using System.Linq;
 using DatingApp.API.Models;
+using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 
 namespace DatingApp.API.Data
 {
     public class Seed
     {
-        private readonly DataContext _context;
-        public Seed(DataContext context)
-        {
-            this._context = context;
-        }
+        private readonly UserManager<User> _userManager;
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt) 
+        public Seed(UserManager<User> userManager)
         {
-            // using() is used when the object is no longer required after the statement such that it is disposed of automatically. The object must be inherited from IDisposable
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
+            this._userManager = userManager;
         }
 
         public void SeedUsers()
         {
-            var userData = System.IO.File.ReadAllText("Data/UserSeedData.json");
-            var users = JsonConvert.DeserializeObject<List<User>>(userData);
+            if (!_userManager.Users.Any()) {
+                var userData = System.IO.File.ReadAllText("Data/UserSeedData.json");
+                var users = JsonConvert.DeserializeObject<List<User>>(userData);
 
-            foreach (var user in users) {
-                byte[] passwordHash, passwordSalt;
-                CreatePasswordHash("password", out passwordHash, out passwordSalt);
-
-                user.PasswordHash = passwordHash;
-                user.PasswordSalt = passwordSalt;
-                user.Username = user.Username.ToLower();
-
-                _context.Users.Add(user);
+                foreach (var user in users) {
+                    _userManager.CreateAsync(user, "password").Wait();
+                }
             }
-
-            _context.SaveChanges();
         }
     }
 }

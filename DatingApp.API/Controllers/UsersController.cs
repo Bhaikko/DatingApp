@@ -13,7 +13,7 @@ using DatingApp.API.Models;
 namespace DatingApp.API.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
-    [Authorize]
+    // [Authorize]  Since RequireAuthenticatedUser() is added to AddMvc() for validation
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase

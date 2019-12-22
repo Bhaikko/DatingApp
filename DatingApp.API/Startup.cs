@@ -179,7 +179,7 @@ namespace DatingApp.API
             app.UseRouting();
 
             // seeder is added as service and then used in Configure
-            seeder.SeedUsers();  // Uncomment and restart to seed the data
+            // seeder.SeedUsers();  // Uncomment and restart to seed the data
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();

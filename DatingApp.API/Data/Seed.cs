@@ -45,6 +45,7 @@ namespace DatingApp.API.Data
                 var users = JsonConvert.DeserializeObject<List<User>>(userData);
 
                 foreach (var user in users) {
+                    user.Photos.SingleOrDefault().IsApproved = true;
                     _userManager.CreateAsync(user, "password").Wait();
                     _userManager.AddToRoleAsync(user, "Member").Wait();
                 }

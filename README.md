@@ -5,7 +5,6 @@ DatingApp is a Social Web-application where users can find new friends or loved 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ## Prerequisites
-Before running the server on your local machine, following *npm packages* must be installed in the same directory where you have cloned the project.
 
 **requirements**
 * nodejs
